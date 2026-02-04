@@ -146,9 +146,10 @@ def serve_upload(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("🔬 Microplastic Detection App")
-    print("="*60)
-    print("📍 Open your browser to: http://localhost:5001")
-    print("="*60 + "\n")
+    # Simple ASCII-only startup banner to avoid Windows console encoding issues
+    print("\n" + "=" * 60)
+    print("Microplastic Detection App")
+    print("=" * 60)
+    print("Open your browser to: http://localhost:5001")
+    print("=" * 60 + "\n")
     app.run(debug=True, host='127.0.0.1', port=5001, threaded=True)

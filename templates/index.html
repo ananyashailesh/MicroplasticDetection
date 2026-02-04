@@ -3,344 +3,1129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microplastic Detection</title>
+    <title>Microplastic AI Detector</title>
+    <!-- Futuristic fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --bg: #050508;
+            --bg-soft: #0c0c13;
+            --magenta: #ff2b70;
+            --magenta-soft: #ff5c9c;
+            --cyan: #4af2c5;
+            --text: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-soft: rgba(255, 255, 255, 0.1);
+            --glass: rgba(15, 23, 42, 0.85);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+            background-image:
+                radial-gradient(circle at top, rgba(255, 43, 112, 0.25), transparent 55%),
+                radial-gradient(circle at bottom, rgba(74, 242, 197, 0.16), transparent 60%),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.95));
         }
-        
-        .container {
+
+        .page-shell {
+            width: 100%;
             max-width: 1200px;
-            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
-        
-        .header {
+
+        /* Cyber grid background */
+        .page-shell::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+            mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9) 0, transparent 65%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            margin-bottom: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(18px);
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85);
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            padding: 2px;
+            background: radial-gradient(circle at 30% 0%, var(--magenta), transparent 55%),
+                        radial-gradient(circle at 70% 100%, var(--cyan), transparent 55%);
+            box-shadow: 0 0 18px rgba(255, 43, 112, 0.5);
+            position: relative;
+        }
+
+        .nav-logo-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Orbitron", system-ui, sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            color: var(--magenta-soft);
+            text-transform: uppercase;
+        }
+
+        .nav-text-title {
+            font-family: "Orbitron", system-ui, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.32em;
+            font-size: 11px;
+            color: #f9fafb;
+        }
+
+        .nav-text-sub {
+            margin-top: 2px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .nav-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 43, 112, 0.55);
+            background: radial-gradient(circle at 30% 0%, rgba(255, 43, 112, 0.2), transparent 60%);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--magenta-soft);
+        }
+
+        .nav-links {
+            display: none;
+        }
+
+        @media (min-width: 900px) {
+            .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+
+        .nav-link {
+            position: relative;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.21em;
+            color: var(--text-muted);
+            padding: 4px 10px 6px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.18s ease;
+        }
+
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 0;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(to right, transparent, var(--magenta-soft), transparent);
+            opacity: 0;
+            transform: translateY(3px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+        .nav-link:hover::after {
+            opacity: 0.7;
+            transform: translateY(0);
+        }
+
+        .nav-link--active {
+            color: var(--magenta-soft);
+        }
+
+        .nav-link--active::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .main-layout {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr);
+            gap: 16px;
+        }
+
+        @media (min-width: 900px) {
+            .main-layout {
+                grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+                gap: 20px;
+            }
+        }
+
+        .hero-header {
+            margin-bottom: 14px;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--magenta-soft);
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .hero-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--magenta-soft);
+            box-shadow: 0 0 14px rgba(255, 43, 112, 0.9);
+        }
+
+        .hero-title {
+            margin-top: 8px;
+            font-family: "Orbitron", system-ui, sans-serif;
+            font-size: 26px;
+            line-height: 1.3;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        @media (min-width: 768px) {
+            .hero-title {
+                font-size: 32px;
+            }
+        }
+
+        .hero-title span {
+            color: var(--magenta-soft);
+        }
+
+        .hero-subtitle {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 520px;
+        }
+
+        .glass-panel {
+            position: relative;
+            border-radius: 22px;
+            background: var(--glass);
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 26px 80px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 43, 112, 0.25);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px 4px;
+        }
+
+        .panel-header h2 {
+            font-family: "Orbitron", system-ui, sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: #d1d5db;
+        }
+
+        .panel-header p {
+            margin-top: 2px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .panel-tag {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: var(--magenta-soft);
+            background: linear-gradient(to right, rgba(255, 43, 112, 0.16), transparent);
+        }
+
+        /* Upload area */
+        .panel-body {
+            padding: 10px 18px 18px;
+        }
+
+        .upload-area {
+            position: relative;
+            border-radius: 18px;
+            border: 2px dashed rgba(255, 255, 255, 0.16);
+            padding: 28px 16px;
             text-align: center;
-            color: white;
-            margin-bottom: 40px;
+            background: radial-gradient(circle at top left, rgba(255, 43, 112, 0.2), transparent 55%),
+                        radial-gradient(circle at bottom right, rgba(74, 242, 197, 0.18), transparent 55%),
+                        rgba(0, 0, 0, 0.78);
+            cursor: pointer;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.18s ease, background 0.3s ease;
+            overflow: hidden;
         }
-        
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+        .upload-area::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 43, 112, 0.55);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
         }
-        
-        .header p {
-            font-size: 1.2em;
+
+        .upload-area:hover {
+            border-color: rgba(255, 43, 112, 0.7);
+            box-shadow: 0 0 24px rgba(255, 43, 112, 0.7);
+            transform: translateY(-1px);
+        }
+
+        .upload-area:hover::before {
             opacity: 0.9;
         }
-        
-        .upload-section {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-        }
-        
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 60px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9ff;
-        }
-        
-        .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
-        }
-        
+
         .upload-area.dragover {
-            background: #e8ebff;
-            border-color: #764ba2;
+            border-color: rgba(255, 43, 112, 0.86);
+            box-shadow: 0 0 30px rgba(255, 43, 112, 0.9);
         }
-        
-        .upload-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-        }
-        
-        .upload-text {
-            font-size: 1.3em;
-            color: #667eea;
+
+        .upload-area-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            background: rgba(5, 5, 8, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 0 20px rgba(255, 43, 112, 0.7);
             margin-bottom: 10px;
+            font-size: 22px;
         }
-        
-        .upload-hint {
-            color: #999;
-            font-size: 0.9em;
+
+        .upload-area-title {
+            font-size: 14px;
+            color: #f9fafb;
         }
-        
+
+        .upload-area-title span {
+            color: var(--magenta-soft);
+            text-decoration: underline;
+            text-decoration-color: rgba(255, 92, 156, 0.7);
+        }
+
+        .upload-area-hint {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
         #fileInput {
             display: none;
         }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+
+        .upload-preview {
+            position: relative;
+            margin-top: 16px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: #020617;
+            height: 220px;
+        }
+
+        .upload-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-preview-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 220px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .preview-label {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.19em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        /* Run detection button & meta */
+        .panel-footer {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            position: relative;
             border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-size: 1.1em;
+            border-radius: 999px;
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.24em;
+            color: #020617;
+            background: linear-gradient(135deg, var(--magenta), var(--magenta-soft));
+            box-shadow: 0 0 18px rgba(255, 43, 112, 0.85);
             cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.15s ease, box-shadow 0.18s ease, opacity 0.15s ease;
         }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
         }
-        
-        .btn:disabled {
+
+        .btn-primary::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.3), transparent 55%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0 26px rgba(255, 43, 112, 0.9);
+        }
+
+        .btn-primary:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 0 12px rgba(255, 43, 112, 0.7) inset;
+        }
+
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            box-shadow: none;
         }
-        
+
+        .scan-meta {
+            font-size: 10px;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        .scan-meta span {
+            color: var(--magenta-soft);
+        }
+
+        /* Results panel */
+        .results-section {
+            margin-top: 12px;
+        }
+
+        @media (min-width: 900px) {
+            .results-section {
+                margin-top: 0;
+            }
+        }
+
+        .result-frame {
+            position: relative;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: radial-gradient(circle at top left, rgba(255, 43, 112, 0.12), transparent 55%),
+                        radial-gradient(circle at bottom right, rgba(74, 242, 197, 0.12), transparent 55%),
+                        #020617;
+            height: 240px;
+            overflow: hidden;
+        }
+
+        .result-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 12px;
+            color: var(--text-muted);
+            gap: 6px;
+            text-align: center;
+        }
+
+        .result-placeholder span {
+            font-size: 20px;
+        }
+
+        .ai-frame-corners {
+            pointer-events: none;
+        }
+
+        .ai-frame-corner {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-color: var(--magenta-soft);
+            border-style: solid;
+        }
+
+        .ai-frame-corner.tl {
+            top: 10px;
+            left: 10px;
+            border-width: 2px 0 0 2px;
+        }
+
+        .ai-frame-corner.tr {
+            top: 10px;
+            right: 10px;
+            border-width: 2px 2px 0 0;
+        }
+
+        .ai-frame-corner.bl {
+            bottom: 10px;
+            left: 10px;
+            border-width: 0 0 2px 2px;
+        }
+
+        .ai-frame-corner.br {
+            bottom: 10px;
+            right: 10px;
+            border-width: 0 2px 2px 0;
+        }
+
+        .result-label {
+            position: absolute;
+            right: 12px;
+            bottom: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.16);
+            color: var(--magenta-soft);
+        }
+
+        /* Detection stats + cards */
+        .results-meta {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        @media (min-width: 480px) {
+            .results-meta {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .meta-card {
+            border-radius: 14px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(0,0,0,0.75);
+        }
+
+        .meta-card--highlight {
+            background: radial-gradient(circle at top, rgba(255, 43, 112, 0.3), transparent 60%),
+                        rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 26px rgba(255, 43, 112, 0.7);
+            border-color: rgba(255, 43, 112, 0.7);
+        }
+
+        .meta-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            color: #d1d5db;
+        }
+
+        .meta-sub {
+            margin-top: 2px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .meta-value-main {
+            margin-top: 4px;
+            font-family: "Orbitron", system-ui, sans-serif;
+            font-size: 20px;
+            color: var(--magenta-soft);
+        }
+
+        .meta-value-suffix {
+            margin-left: 3px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .system-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            margin-right: 6px;
+        }
+
+        .system-status-text {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Per detection cards */
+        .detections-list {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .detection-item {
+            position: relative;
+            border-radius: 14px;
+            padding: 10px;
+            background: radial-gradient(circle at top left, rgba(255, 43, 112, 0.35), transparent 60%),
+                        rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 0 16px rgba(255, 43, 112, 0.6);
+            text-align: left;
+            overflow: hidden;
+            transition: transform 0.14s ease, box-shadow 0.2s ease;
+        }
+
+        .detection-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 22px rgba(255, 43, 112, 0.9);
+        }
+
+        .detection-class {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: capitalize;
+            color: #f9fafb;
+        }
+
+        .detection-confidence {
+            margin-top: 2px;
+            font-size: 11px;
+            color: rgba(249, 250, 251, 0.9);
+        }
+
+        .error {
+            margin-top: 10px;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 11px;
+            color: #fee2e2;
+            background: linear-gradient(to right, rgba(248, 113, 113, 0.6), rgba(185, 28, 28, 0.7));
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            display: none;
+        }
+
+        .analyze-again {
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        .analyze-again button {
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 7px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.21em;
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.18s ease, transform 0.14s ease;
+        }
+
+        .analyze-again button:hover {
+            background: rgba(15, 23, 42, 1);
+            transform: translateY(-1px);
+        }
+
+        /* Loading/scanning section */
         .loading {
             display: none;
-            text-align: center;
-            padding: 20px;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: radial-gradient(circle at left, rgba(255, 43, 112, 0.2), transparent 60%),
+                        rgba(0, 0, 0, 0.88);
+            font-size: 11px;
+            color: var(--text);
         }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+
+        .loading-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--magenta-soft);
+            box-shadow: 0 0 12px rgba(255, 43, 112, 0.8);
+            animation: pulse 1.8s ease-in-out infinite;
         }
-        
-        .results-section {
-            display: none;
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        .scan-bar {
+            margin-top: 6px;
+            width: 100%;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(31, 41, 55, 0.9);
+            overflow: hidden;
         }
-        
-        .results-header {
-            text-align: center;
-            margin-bottom: 30px;
+
+        .scan-bar-inner {
+            width: 40%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(to right, transparent, var(--magenta-soft), transparent);
+            animation: scan 2s linear infinite;
         }
-        
-        .results-header h2 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 10px;
+
+        .loading-sub {
+            margin-top: 4px;
+            font-size: 10px;
+            color: var(--text-muted);
         }
-        
-        .detection-count {
-            font-size: 1.5em;
-            color: #764ba2;
-            font-weight: bold;
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.25);
+            }
         }
-        
-        .image-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .result-image {
-            max-width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .detections-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .detection-item {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        
-        .detection-class {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-transform: capitalize;
-        }
-        
-        .detection-confidence {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .error {
-            background: #ff6b6b;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .new-detection-btn {
-            margin-top: 30px;
-            text-align: center;
+
+        @keyframes scan {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(250%);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔬 Microplastic Detector</h1>
-            <p>Upload an image to detect and visualize microplastics</p>
-        </div>
-        
-        <div class="upload-section">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📸</div>
-                <div class="upload-text">Click to upload or drag and drop</div>
-                <div class="upload-hint">Supports: JPG, PNG, GIF (Max 16MB)</div>
-                <input type="file" id="fileInput" accept="image/*">
-                <button class="btn" onclick="document.getElementById('fileInput').click()">
-                    Choose Image
-                </button>
+    <div class="page-shell">
+        <header class="nav">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <div class="nav-logo-inner">μP</div>
+                </div>
+                <div>
+                    <div class="nav-text-title">Microplastic</div>
+                    <div class="nav-text-sub">YOLOv8 · microplastic_100/4</div>
+                </div>
             </div>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Analyzing image for microplastics...</p>
+            <div class="nav-links" aria-label="Primary">
+                <button class="nav-link nav-link--active" type="button">Upload</button>
+                <button class="nav-link" type="button">Results</button>
+                <button class="nav-link" type="button">Model</button>
+                <button class="nav-link" type="button">About</button>
             </div>
-            
-            <div class="error" id="error"></div>
-        </div>
-        
-        <div class="results-section" id="results">
-            <div class="results-header">
-                <h2>Detection Results</h2>
-                <div class="detection-count" id="detectionCount"></div>
-            </div>
-            
-            <div class="image-container">
-                <img id="resultImage" class="result-image" alt="Detection Result">
-            </div>
-            
-            <div class="detections-list" id="detectionsList"></div>
-            
-            <div class="new-detection-btn">
-                <button class="btn" onclick="location.reload()">
-                    🔄 Analyze Another Image
-                </button>
-            </div>
-        </div>
+            <div class="nav-badge">AI · Environmental Scan</div>
+        </header>
+
+        <main>
+            <section class="hero-header">
+                <div class="hero-pill">
+                    <span class="hero-dot"></span>
+                    Real‑time · Microplastic Analysis
+                </div>
+                <h1 class="hero-title">
+                    Microplastic <span>AI Detector</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Upload ocean or lab imagery and let the model highlight and quantify microplastics
+                    with neon‑sharp precision in a single scan.
+                </p>
+            </section>
+
+            <section class="main-layout">
+                <!-- Left: upload + class legend -->
+                <div>
+                    <section class="glass-panel" aria-label="Image upload">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Input Imagery</h2>
+                                <p>Drag &amp; drop high‑resolution frames to begin detection.</p>
+                            </div>
+                            <div class="panel-tag">Scan Mode</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-area-icon" aria-hidden="true">📡</div>
+                                <div class="upload-area-title">
+                                    Drop an image here or <span>browse files</span>
+                                </div>
+                                <div class="upload-area-hint">
+                                    JPG · PNG · GIF · Max 16MB · Best at 640×640
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" aria-label="Image file" />
+                                <div class="upload-preview" id="previewContainer">
+                                    <div class="upload-preview-empty">
+                                        No image loaded. Your preview will appear here.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel-footer">
+                                <button class="btn-primary" id="runButton" type="button" disabled>
+                                    <span>Run Detection</span>
+                                </button>
+                                <div class="scan-meta">
+                                    <div>Model: YOLOv8n · microplastic_100/4</div>
+                                    <div><span>Target:</span> &lt; 200ms / frame (GPU)</div>
+                                </div>
+                            </div>
+
+                            <div class="loading" id="loading" aria-live="polite">
+                                <div class="loading-top">
+                                    <div class="pulse-dot"></div>
+                                    <div>Analyzing image for microplastics…</div>
+                                </div>
+                                <div class="scan-bar">
+                                    <div class="scan-bar-inner"></div>
+                                </div>
+                                <div class="loading-sub">
+                                    Running bounding‑box detection and confidence aggregation.
+                                </div>
+                            </div>
+
+                            <div class="error" id="error" role="alert"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right: results + stats -->
+                <section class="glass-panel results-section" aria-label="Detection results">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Detection Output</h2>
+                            <p>Detected microplastic overlays and statistical summary.</p>
+                        </div>
+                        <div class="panel-tag">Vision Engine</div>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="result-frame" id="resultFrame">
+                            <div class="result-placeholder" id="resultPlaceholder">
+                                <span>🧪</span>
+                                <div>Awaiting scan.</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">
+                                    Your processed detection frame will appear here after analysis.
+                                </div>
+                            </div>
+                            <img id="resultImage" alt="Detection result" style="display:none;" />
+                            <div class="ai-frame-corners">
+                                <div class="ai-frame-corner tl"></div>
+                                <div class="ai-frame-corner tr"></div>
+                                <div class="ai-frame-corner bl"></div>
+                                <div class="ai-frame-corner br"></div>
+                            </div>
+                            <div class="result-label" id="resultLabel" style="display:none;">
+                                Detection Complete
+                            </div>
+                        </div>
+
+                        <div class="results-meta" id="resultsMeta">
+                            <div class="meta-card meta-card--highlight">
+                                <div class="meta-label">Total Detections</div>
+                                <div class="meta-sub">All microplastic instances</div>
+                                <div>
+                                    <span class="meta-value-main" id="totalDetections">0</span>
+                                    <span class="meta-value-suffix">objects</span>
+                                </div>
+                            </div>
+                            <div class="meta-card">
+                                <div class="meta-label">Mean Confidence</div>
+                                <div class="meta-sub">Across detected objects</div>
+                                <div>
+                                    <span class="meta-value-main" id="avgConfidence">0</span>
+                                    <span class="meta-value-suffix">%</span>
+                                </div>
+                            </div>
+                            <div class="meta-card">
+                                <div class="meta-label">System Status</div>
+                                <div class="meta-sub" style="margin-top: 6px; display:flex; align-items:center;">
+                                    <div class="system-status-dot" id="statusDot" style="background:#6b7280;"></div>
+                                    <div class="system-status-text" id="statusText">Idle. Awaiting scan.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detections-list" id="detectionsList"></div>
+
+                        <div class="analyze-again">
+                            <button type="button" onclick="location.reload()">
+                                Analyze Another Image
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
     </div>
-    
+
     <script>
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        const error = document.getElementById('error');
-        
+        const errorBox = document.getElementById('error');
+        const resultsMeta = document.getElementById('resultsMeta');
+        const detectionsList = document.getElementById('detectionsList');
+        const resultImage = document.getElementById('resultImage');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const resultLabel = document.getElementById('resultLabel');
+        const runButton = document.getElementById('runButton');
+        const previewContainer = document.getElementById('previewContainer');
+        const totalDetectionsEl = document.getElementById('totalDetections');
+        const avgConfidenceEl = document.getElementById('avgConfidence');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        let selectedFile = null;
+
         // Drag and drop handlers
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
         });
-        
-        uploadArea.addEventListener('dragleave', () => {
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
             uploadArea.classList.remove('dragover');
         });
-        
+
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileUpload(files[0]);
+            if (files && files.length > 0) {
+                setFile(files[0]);
             }
         });
-        
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
         fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileUpload(e.target.files[0]);
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                setFile(file);
             }
         });
-        
+
+        runButton.addEventListener('click', () => {
+            if (!selectedFile) return;
+            handleFileUpload(selectedFile);
+        });
+
+        function setFile(file) {
+            selectedFile = file;
+            errorBox.style.display = 'none';
+
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                previewContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                img.alt = 'Uploaded image preview';
+                previewContainer.appendChild(img);
+
+                const label = document.createElement('div');
+                label.className = 'preview-label';
+                label.textContent = 'Preview · Input Frame';
+                previewContainer.appendChild(label);
+            };
+            reader.readAsDataURL(file);
+
+            runButton.disabled = false;
+        }
+
         function handleFileUpload(file) {
+            if (!file) return;
+
             // Reset UI
-            error.style.display = 'none';
-            results.style.display = 'none';
+            errorBox.style.display = 'none';
             loading.style.display = 'block';
-            
+            runButton.disabled = true;
+
+            statusDot.style.background = '#f97316';
+            statusText.textContent = 'Running inference pipeline…';
+
             const formData = new FormData();
             formData.append('file', file);
-            
+
             fetch('/upload', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = 'none';
-                
-                if (data.error) {
-                    showError(data.error);
-                    return;
-                }
-                
-                // Show results
-                document.getElementById('detectionCount').textContent = 
-                    `${data.total_detected} microplastic${data.total_detected !== 1 ? 's' : ''} detected`;
-                
-                document.getElementById('resultImage').src = data.result_image;
-                
-                const detectionsList = document.getElementById('detectionsList');
-                detectionsList.innerHTML = '';
-                
-                data.detections.forEach(detection => {
-                    const item = document.createElement('div');
-                    item.className = 'detection-item';
-                    item.innerHTML = `
-                        <div class="detection-class">${detection.class}</div>
-                        <div class="detection-confidence">${detection.confidence}% confidence</div>
-                    `;
-                    detectionsList.appendChild(item);
+                .then((response) => response.json())
+                .then((data) => {
+                    loading.style.display = 'none';
+                    runButton.disabled = false;
+
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+
+                    // Update main image
+                    resultPlaceholder.style.display = 'none';
+                    resultImage.src = data.result_image;
+                    resultImage.style.display = 'block';
+                    resultLabel.style.display = 'block';
+
+                    // Stats
+                    const total = data.total_detected || 0;
+                    totalDetectionsEl.textContent = total;
+
+                    const detections = data.detections || [];
+                    const avg =
+                        detections.length > 0
+                            ? Math.round(
+                                  detections.reduce((sum, d) => sum + (d.confidence || 0), 0) /
+                                      detections.length
+                              )
+                            : 0;
+                    avgConfidenceEl.textContent = avg;
+
+                    // Status
+                    statusDot.style.background = '#22c55e';
+                    statusText.textContent = 'Analysis complete.';
+
+                    // Per‑detection cards
+                    detectionsList.innerHTML = '';
+                    detections.forEach((d) => {
+                        const item = document.createElement('div');
+                        item.className = 'detection-item';
+                        item.innerHTML = `
+                            <div class="detection-class">${d.class}</div>
+                            <div class="detection-confidence">${d.confidence}% confidence</div>
+                        `;
+                        detectionsList.appendChild(item);
+                    });
+                })
+                .catch((err) => {
+                    loading.style.display = 'none';
+                    runButton.disabled = false;
+                    statusDot.style.background = '#ef4444';
+                    statusText.textContent = 'Error during analysis.';
+                    showError('Failed to analyze image: ' + err.message);
                 });
-                
-                results.style.display = 'block';
-            })
-            .catch(err => {
-                loading.style.display = 'none';
-                showError('Failed to analyze image: ' + err.message);
-            });
         }
-        
+
         function showError(message) {
-            error.textContent = message;
-            error.style.display = 'block';
+            errorBox.textContent = message;
+            errorBox.style.display = 'block';
         }
     </script>
 </body>
