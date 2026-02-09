@@ -38,21 +38,23 @@ class MicroplasticDetector:
             raise FileNotFoundError(f"Image not found: {image_path}")
         
         print(f"Analyzing image: {image_path}")
-        result = self.client.infer(image_path, model_id=self.model_id)
         
-        return result
+        # Read and encode image
+        with open(image_path, 'rb') as image_file:
+            image_data = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        # Make API request
+        url = f"{self.api_url}/{self.model_id}?api_key={self.api_key}"
+        response = requests.post(url, json=image_data, headers={'Content-Type': 'application/json'})
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"API Error: {response.status_code} - {response.text}")
     
-    def 
-        # Initialize model on first use
-        if self.model is None:
-            self.model = get_model(model_id=self.model_id, api_key=self.api_key)
-        
-        result = self.model.infer(image_path)[0]
-        
-        # Convert to dict format
-        result_dict = result.dict() if hasattr(result, 'dict') else result
-        
-        return result_dicplastics and save results to JSON
+    def detect_and_save(self, image_path, output_path=None):
+        """
+        Detect microplastics and save results to JSON
         
         Args:
             image_path (str): Path to the image file
